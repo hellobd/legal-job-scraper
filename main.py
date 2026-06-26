@@ -5,14 +5,21 @@ from scrapers.detector import ATSDetector
 from utils.logger import setup_logger
 from utils.exporter import export_jobs_to_csv
 
+from database.repository import JobRepository
+
 
 def main():
     logger = setup_logger()
     logger.info("Legal Job Scraper started.")
 
+    repository = JobRepository()
+
+
     df = pd.read_csv(INPUT_FILE)
 
     all_jobs = []
+
+    
 
     for source_url in df["url"]:
         logger.info(f"Processing URL: {source_url}")
@@ -26,6 +33,9 @@ def main():
         try:
             jobs = scraper.scrape()
             all_jobs.extend(jobs)
+
+            for job in jobs:
+                repository.save_job(job)
 
             logger.info(f"Found {len(jobs)} jobs from {source_url}")
 
